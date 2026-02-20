@@ -104,6 +104,9 @@ export default function SetupScreen({ onStart }) {
         <p className="text-lg text-slate-400 font-light">
           ذهنت رو بخون • اکثریت برنده‌ست
         </p>
+        <p className="text-sm text-slate-500 mt-2">
+         ساخته شده توسط ممد درویشی 
+        </p>
       </div>
 
       {/* Main card */}
