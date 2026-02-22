@@ -3,8 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig(({ command }) => {
-  const base = process.env.GITHUB_PAGES === 'true' ? '/telepathy/' : '/'
-
+  const base = '/'
   return {
     base,
     plugins: [
