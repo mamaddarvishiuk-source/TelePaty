@@ -242,6 +242,8 @@ useEffect(() => {
     } catch (err) {
       console.error('Join room error:', err);
       setError('خطا در ورود به اتاق');
+      localStorage.removeItem('telepaty_room');
+      localStorage.removeItem('telepaty_name');
       setLoading(false);
       return false;
     }
