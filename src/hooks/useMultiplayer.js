@@ -26,13 +26,36 @@ function generatePlayerId() {
   return 'p_' + Math.random().toString(36).substring(2, 10);
 }
 
+// Persian/Arabic text normalizer
+export function normalizeAnswer(text) {
+  let s = text.trim();
+  s = s.replace(/ك/g, 'ک');
+  s = s.replace(/ي/g, 'ی');
+  s = s.replace(/ة/g, 'ه');
+  s = s.replace(/ؤ/g, 'و');
+  s = s.replace(/إ/g, 'ا');
+  s = s.replace(/أ/g, 'ا');
+  s = s.replace(/آ/g, 'ا');
+  s = s.replace(/ٱ/g, 'ا');
+  s = s.replace(/ئ/g, 'ی');
+  s = s.replace(/ء/g, '');
+  s = s.replace(/ى/g, 'ی');
+  s = s.replace(/[\u064B-\u065F\u0670]/g, '');
+  s = s.replace(/[\u200B-\u200F\u200C\u202A-\u202E\u2060\u2066-\u2069\uFEFF]/g, '');
+  s = s.replace(/\s+/g, '');
+  s = s.toLowerCase();
+  s = s.replace(/[۰-۹]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x06F0 + 48));
+  s = s.replace(/[٠-٩]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x0660 + 48));
+  return s;
+}
+
 export function useMultiplayer() {
   const [roomCode, setRoomCode] = useState(null);
   const [playerId] = useState(() => {
-    const stored = sessionStorage.getItem('telepaty_pid');
-    if (stored) return stored;
-    const id = generatePlayerId();
-    sessionStorage.setItem('telepaty_pid', id);
+    const stored = localStorage.getItem('telepaty_pid');
+  if (stored) return stored;
+  const id = generatePlayerId();
+  localStorage.setItem('telepaty_pid', id);
     return id;
   });
   const [playerName, setPlayerName] = useState('');
@@ -41,6 +64,45 @@ export function useMultiplayer() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const unsubRef = useRef(null);
+  // Auto-rejoin on page load (phone lock, refresh)
+useEffect(() => {
+  const savedRoom = localStorage.getItem('telepaty_room');
+  const savedName = localStorage.getItem('telepaty_name');
+  if (savedRoom && savedName) {
+    (async () => {
+      try {
+        const roomRef = doc(db, 'rooms', savedRoom);
+        const snap = await getDoc(roomRef);
+        if (!snap.exists()) {
+          localStorage.removeItem('telepaty_room');
+          localStorage.removeItem('telepaty_name');
+          return;
+        }
+        const data = snap.data();
+        if (data.players && data.players[playerId]) {
+          setRoomCode(savedRoom);
+          setPlayerName(data.players[playerId].name);
+          setIsHost(data.hostId === playerId);
+          subscribeToRoom(savedRoom);
+        } else {
+          localStorage.removeItem('telepaty_room');
+          localStorage.removeItem('telepaty_name');
+        }
+      } catch (e) {
+        localStorage.removeItem('telepaty_room');
+        localStorage.removeItem('telepaty_name');
+      }
+    })();
+  }
+}, []);
+
+// Save room info
+useEffect(() => {
+  if (roomCode && playerName) {
+    localStorage.setItem('telepaty_room', roomCode);
+    localStorage.setItem('telepaty_name', playerName);
+  }
+}, [roomCode, playerName]);
 
   // Clean up listener on unmount
   useEffect(() => {
@@ -247,7 +309,7 @@ export function useMultiplayer() {
       const freq = {};
       const normalized = {};
       Object.entries(answers).forEach(([pid, answer]) => {
-        const norm = answer.trim().toLowerCase().replace(/\s+/g, ' ');
+        const norm = normalizeAnswer(answer);
         normalized[pid] = norm;
         freq[norm] = (freq[norm] || 0) + 1;
       });
@@ -316,6 +378,8 @@ export function useMultiplayer() {
       setRoomCode(null);
       setGameState(null);
       setIsHost(false);
+      localStorage.removeItem('telepaty_room');
+      localStorage.removeItem('telepaty_name');
     } catch (err) {
       console.error('Leave room error:', err);
     }

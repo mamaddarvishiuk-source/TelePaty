@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { normalizeAnswer } from '../hooks/useMultiplayer';
 
 export default function MultiplayerReveal({ question, answers, playersList, round, playerId }) {
   const fa = (n) => n.toLocaleString('fa-IR');
@@ -11,7 +12,7 @@ export default function MultiplayerReveal({ question, answers, playersList, roun
     const normalized = {};
 
     Object.entries(answers).forEach(([pid, answer]) => {
-      const norm = answer.trim().toLowerCase().replace(/\s+/g, ' ');
+      const norm = normalizeAnswer(answer);
       normalized[pid] = norm;
       freq[norm] = (freq[norm] || 0) + 1;
     });

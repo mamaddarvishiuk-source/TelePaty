@@ -48,7 +48,7 @@ export default function HomeScreen({ multiplayer }) {
           ذهنت رو بخون • اکثریت برنده‌ست
         </p>
         <p className="text-sm text-slate-500 mt-2">
-          Developed by : Mohammad Darvishi
+          طراحی شده توسط محمد درویشی
           </p>
         <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-cyan/10 border border-neon-cyan/20">
           <span className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
